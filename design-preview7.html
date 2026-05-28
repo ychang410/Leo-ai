@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY SPACE — v7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: rgba(255,255,255,0.85);
+    --accent-dim: rgba(255,255,255,0.06);
+    --accent-border: rgba(255,255,255,0.13);
+    --accent-glow: rgba(255,255,255,0.18);
+    --text-main: #FFFFFF;
+    --text-sub: rgba(255,255,255,0.55);
+    --text-dim: rgba(255,255,255,0.22);
+    --bg-app: #06091A;
+    --bg-card: rgba(10,8,28,0.85);
+    --ok-color: #FDE68A;
+    --ok-glow: rgba(253,220,138,0.32);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-app); color: var(--text-main); }
+
+  /* 얇은 커스텀 스크롤바 */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--accent-border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  .stars-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(1px 1px at 8% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 72% 8%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 40% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 40%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 88%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 95% 68%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 22% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 78% 24%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 42%, rgba(255,255,255,0.3) 0%, transparent 100%);
+  }
+  .nebula-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 38% at 15% 28%, rgba(255,255,255,0.025) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 32% at 82% 68%, rgba(255,255,255,0.02) 0%, transparent 70%);
+  }
+
+  /* ── 포털 ── */
+  .portal { position: relative; z-index: 10; height: 100vh; display: none; flex-direction: column; padding: 18px 22px 16px; }
+  .portal.active { display: flex; }
+
+  /* ── 상단 바 ── */
+  .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-shrink: 0; }
+
+  .greeting-block {}
+  /* 인사말 줄: 연수님 ✦ · 날씨 · 음악 컨트롤 한 줄에 */
+  .greeting-line1 { display: flex; align-items: center; gap: 0; font-size: 14px; color: var(--text-sub); font-weight: 400; flex-wrap: wrap; }
+  .greeting-line1 strong { color: var(--text-main); font-weight: 700; }
+  .gsep { color: var(--text-dim); margin: 0 8px; font-size: 12px; opacity: 0.6; }
+  /* 날씨 텍스트 (테두리 없음) */
+  .weather-inline { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
+  .weather-inline .wv { color: var(--text-sub); font-family: 'Space Mono', monospace; font-size: 11px; }
+  /* 음악 컨트롤 인라인 */
+  .music-inline { display: flex; align-items: center; gap: 6px; }
+  .mc-btn { font-size: 14px; color: var(--text-dim); cursor: pointer; transition: color 0.15s; padding: 0 2px; line-height: 1; }
+  .mc-btn:hover { color: var(--accent); }
+  .mc-play { font-size: 13px; color: var(--text-sub); cursor: pointer; transition: color 0.15s; }
+  .wrain { color: var(--text-dim); font-size: 11px; }
+  .mc-play:hover { color: var(--accent); }
+  .music-title { font-size: 11px; color: var(--text-dim); cursor: pointer; transition: color 0.15s; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .music-title:hover { color: var(--text-sub); }
+  .spotify-dot { width: 5px; height: 5px; border-radius: 50%; background: #1DB954; flex-shrink: 0; }
+
+  .greeting-line2 { font-size: 11px; color: var(--text-dim); margin-top: 3px; font-family: 'Space Mono', monospace; }
+
+  /* 좌측 그룹: 인사말 + 날씨·음악을 가로로 묶고 수직 가운데 정렬 */
+  .top-left-group { display: flex; align-items: center; gap: 14px; }
+  .top-center { display: flex; align-items: center; gap: 6px; }
+
+  /* 우: 설정 */
+  .top-right { display: flex; align-items: center; gap: 8px; }
+  .settings-wrap { position: relative; }
+  .settings-btn { width: 24px; height: 24px; border-radius: 7px; border: 1px solid var(--accent-border); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dim); font-size: 12px; transition: all 0.15s; }
+  .settings-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .settings-panel { position: absolute; top: 30px; right: 0; background: rgba(7,5,20,0.97); border: 1px solid var(--accent-border); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(24px); box-shadow: 0 8px 28px rgba(0,0,0,0.5); display: none; min-width: 130px; z-index: 200; animation: fadeIn 0.16s ease; }
+  .settings-panel.open { display: block; }
+  .sp-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 9px; }
+  .sp-dots { display: flex; gap: 7px; }
+  .spdot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; opacity: 0.4; transition: all 0.16s; }
+  .spdot.active { opacity: 1; transform: scale(1.25); outline: 2px solid rgba(255,255,255,0.2); outline-offset: 2px; }
+  .sp-divider { height: 1px; background: var(--accent-border); margin: 10px 0; }
+  .sp-spotify { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-dim); cursor: pointer; padding: 4px 0; transition: color 0.14s; }
+  .sp-spotify:hover { color: #1DB954; }
+  .sp-spotify .sicon { font-size: 13px; }
+
+  /* ── 메인 레이아웃: 콘텐츠 + AI 사이드바 ── */
+  .portal-body { flex: 1; min-height: 0; display: flex; gap: 0; }
+
+  /* 왼쪽 패널: 확장 뷰 기준점, 테두리 없음 */
+  .left-panel {
+    flex: 1; min-width: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .main-grid {
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 3fr 2fr;
+    gap: 8px;
+  }
+
+  /* 구분선: 왼쪽 패널과 AI 사이드바 사이 */
+  .panel-divider {
+    width: 1px;
+    background: var(--accent-border);
+    margin: 0 12px;
+    flex-shrink: 0;
+    align-self: stretch;
+    opacity: 0.6;
+  }
+
+  /* 위젯: 컨테이너 안에서 모서리 없이 */
+  /* (border-radius는 grid 모서리 위치 4개만 적용) */
+
+  /* 위젯 공통 */
+  .widget { background: var(--bg-card); border: 1px solid var(--accent-border); border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.18s ease; backdrop-filter: blur(20px); position: relative; overflow: hidden; min-height: 0; display: flex; flex-direction: column; }
+  .widget:hover { border-color: rgba(255,255,255,0.30); box-shadow: 0 0 16px rgba(255,255,255,0.07); transform: translateY(-1px); }
+  .widget::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); opacity: 0; transition: opacity 0.18s; }
+  .widget:hover::after { opacity: 1; }
+
+  .widget-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+
+  .wlabel { font-size: 9px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .wlabel .ind { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent-glow); }
+
+  /* 그리드 배치 */
+  .w-calendar { grid-column: 1; grid-row: 1; }
+  .w-stocks   { grid-column: 2; grid-row: 1; }
+  .w-news     { grid-column: 1; grid-row: 2; }
+  .w-email    { grid-column: 2; grid-row: 2; }
+
+  /* ── AI 사이드바 ── */
+  .ai-sidebar {
+    width: 260px; flex-shrink: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--accent-border);
+    border-radius: 14px;
+    display: flex; flex-direction: column;
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+    position: relative;
+  }
+  .ai-sidebar-hd { padding: 11px 14px 10px; border-bottom: 1px solid var(--accent-border); display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .ai-sidebar-hd .ai-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent-glow); animation: blink 2.2s infinite; }
+  .ai-sidebar-hd .ai-title { font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+
+  /* 별 우주 영역 */
+  .ai-cosmos { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 16px; }
+
+  /* 별 */
+  .ai-star { position: absolute; border-radius: 50%; background: white; animation: starTwinkle var(--dur, 2.5s) ease-in-out infinite; animation-delay: var(--delay, 0s); }
+  @keyframes starTwinkle { 0%,100% { opacity: 0.08; transform: scale(1); } 50% { opacity: 0.75; transform: scale(1.5); } }
+
+  /* 중앙 오브 */
+  .ai-orb { position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; flex-shrink: 0; }
+  .orb-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); animation: orbPulse var(--rdur, 3s) ease-in-out infinite; animation-delay: var(--rdelay, 0s); }
+  .orb-ring.r1 { width: 56px; height: 56px; }
+  .orb-ring.r2 { width: 76px; height: 76px; --rdur: 4s; --rdelay: -0.6s; border-color: rgba(255,255,255,0.06); }
+  .orb-ring.r3 { width: 98px; height: 98px; --rdur: 5s; --rdelay: -1.2s; border-color: rgba(255,255,255,0.04); }
+  @keyframes orbPulse { 0%,100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+  .orb-core { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; animation: coreGlow 2.5s ease-in-out infinite; cursor: default; }
+  @keyframes coreGlow { 0%,100% { box-shadow: 0 0 10px rgba(255,255,255,0.07); } 50% { box-shadow: 0 0 22px rgba(255,255,255,0.2), 0 0 44px rgba(255,255,255,0.07); } }
+
+  /* 답변 텍스트 */
+  .ai-response { text-align: center; font-size: 11px; line-height: 1.75; color: var(--text-sub); max-width: 200px; animation: fadeIn 0.4s ease; }
+  .ai-response.active { color: var(--text-main); }
+
+  /* 입력 */
+  .ai-inp { padding: 10px 12px; border-top: 1px solid var(--accent-border); display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .ai-inp input { flex: 1; background: none; border: none; outline: none; font-size: 10px; color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; }
+  .ai-inp input::placeholder { color: var(--text-dim); }
+  .ai-send { width: 22px; height: 22px; border-radius: 7px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent); cursor: pointer; transition: all 0.14s; }
+  .ai-send:hover { border-color: var(--accent); }
+
+  /* ── 주식 ── */
+  .stabs { display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; }
+  .stab { font-size: 9px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--accent-border); color: var(--text-dim); cursor: pointer; background: transparent; }
+  .stab.on { background: var(--accent-dim); color: var(--accent); }
+  /* 카드 그리드 */
+  .sgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding-right: 2px; }
+  .scard {
+    padding: 7px 9px; border-radius: 10px;
+    border: 1px solid var(--accent-border);
+    background: rgba(255,255,255,0.025);
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .scard:hover { border-color: rgba(255,255,255,0.32); }
+  .scard.up-card { border-left: 2px solid rgba(255,120,120,0.45); }
+  .scard.dn-card { border-left: 2px solid rgba(120,176,255,0.45); }
+  .scard-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .sname { font-size: 11px; color: var(--text-main); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .schg { font-size: 9px; font-weight: 600; white-space: nowrap; }
+  .sprice { font-family: 'Space Mono',monospace; font-size: 10px; color: var(--text-sub); }
+  .up { color: #ff7878; } .dn { color: #78b0ff; }
+  /* 추가 카드 */
+  .scard-add {
+    padding: 7px 9px; border-radius: 10px;
+    border: 1px dashed var(--accent-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.14s;
+  }
+  .scard-add:hover { color: var(--accent); border-color: var(--accent); }
+  .spark { width: 100%; height: 24px; display: block; margin-top: 5px; overflow: visible; }
+
+  /* 매수/매도 추천 */
+  .srec { flex-shrink: 0; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--accent-border); }
+  .srec-hd { font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+  .srec-hd .srec-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ok-color); box-shadow: 0 0 4px var(--ok-glow); animation: blink 2.2s infinite; }
+  .srec-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .srec-col { display: flex; flex-direction: column; gap: 3px; }
+  .srec-label { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+  .srec-label.buy { color: rgba(255,110,110,0.7); }
+  .srec-label.sell { color: rgba(100,160,255,0.7); }
+  .srec-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 7px; border-radius: 7px; border: 1px solid var(--accent-border); background: rgba(255,255,255,0.02); }
+  .srec-item.buy { border-left: 2px solid rgba(255,110,110,0.4); }
+  .srec-item.sell { border-left: 2px solid rgba(100,160,255,0.4); }
+  .srec-name { font-size: 10px; color: var(--text-main); font-weight: 500; }
+  .srec-reason { font-size: 8px; color: var(--text-dim); white-space: nowrap; }
+
+  /* ── 이메일 ── */
+  .email-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+  .unread-big { font-family: 'Space Mono',monospace; font-size: 20px; font-weight: 700; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); line-height: 1; }
+  .unread-lbl { font-size: 9px; color: var(--text-dim); }
+  .elist { display: flex; flex-direction: column; padding-right: 2px; }
+  .eitem { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; flex-shrink: 0; }
+  .eitem:last-child { border-bottom: none; }
+  .esrow { display: flex; align-items: center; gap: 5px; }
+  .eunread { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .eread { width: 4px; height: 4px; flex-shrink: 0; }
+  .ename { font-size: 11px; color: var(--text-main); font-weight: 500; }
+  .esubj { font-size: 10px; color: var(--text-sub); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .etime { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; }
+
+  /* ── 캘린더 ── */
+  /* 캘린더 내부: 좌(달력+할일 세로) / 우(오늘 풀높이) */
+  .cal-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; min-height: 0; }
+  .cal-left-col { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+  .cal-q { display: flex; flex-direction: column; min-height: 0; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 7px 8px; overflow: hidden; }
+  .cal-q.full { flex: 1; }
+  .cal-q-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-right: 2px; }
+
+  .cal-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-shrink: 0; }
+  .cal-month-nav h3 { font-size: 11px; font-weight: 700; color: var(--text-main); }
+  .cal-nav-btns { display: flex; gap: 3px; }
+  .cnbtn { width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--accent-border); background: rgba(255,255,255,0.04); color: var(--text-sub); font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .cal-dows { display: grid; grid-template-columns: repeat(7, 1fr); flex-shrink: 0; }
+  .cal-dows span { text-align: center; font-size: 8px; color: var(--text-dim); padding: 2px 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; flex: 1; align-content: start; }
+  .cday { text-align: center; font-size: 9px; font-family: 'Space Mono',monospace; padding: 3px 1px; border-radius: 5px; color: var(--text-dim); cursor: pointer; position: relative; transition: background 0.12s; }
+  .cday:hover { background: var(--accent-dim); }
+  .cday.today { background: var(--accent); color: var(--bg-app); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: auto; box-shadow: 0 0 7px var(--accent-glow); font-weight: 700; }
+  .cday.has-ev::after { content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 2px; height: 2px; border-radius: 50%; background: var(--accent); }
+  .cday.today.has-ev::after { display: none; }
+
+  .today-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-shrink: 0; }
+  .today-hd h4 { font-size: 11px; font-weight: 700; color: var(--text-main); }
+  .today-hd .tdate { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; }
+  /* 오른쪽 스크롤 영역 */
+  .cal-right-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-right: 2px; }
+  .sec-t { font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; margin-top: 10px; }
+  .sec-t:first-child { margin-top: 0; }
+  .ev-list { display: flex; flex-direction: column; gap: 4px; }
+  .ev-item { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--accent-border); background: rgba(255,255,255,0.02); }
+  .ev-bar { width: 2px; height: 20px; border-radius: 2px; background: var(--accent); flex-shrink: 0; }
+  .ev-bar.work { background: var(--ok-color); }
+  .ev-title { font-size: 11px; color: var(--text-main); }
+  .ev-time { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; margin-top: 1px; }
+  .todo-list { display: flex; flex-direction: column; gap: 4px; }
+  .titem { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .titem:last-child { border-bottom: none; }
+  .tcheck { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--accent-border); flex-shrink: 0; position: relative; }
+  .tcheck.done { background: var(--ok-color); border-color: var(--ok-color); }
+  .tcheck.done::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 7px; color: var(--bg-app); }
+  .ttxt { font-size: 11px; color: var(--text-sub); flex: 1; }
+  .ttxt.done { text-decoration: line-through; color: var(--text-dim); }
+  .ttag { font-size: 8px; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--accent-border); color: var(--accent); background: var(--accent-dim); flex-shrink: 0; }
+  .ttag.work { color: var(--ok-color); border-color: rgba(253,220,138,0.26); }
+
+  /* 이번달 주요 일정 */
+  .cal-month-evs { flex-shrink: 0; overflow-y: auto; max-height: 80px; padding-right: 2px; }
+  .mev-item { display: flex; align-items: baseline; gap: 7px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .mev-item:last-child { border-bottom: none; }
+  .mev-date { font-family: 'Space Mono', monospace; font-size: 8px; color: var(--text-dim); flex-shrink: 0; }
+  .mev-title { font-size: 10px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ── 뉴스 ── */
+  .ntabs { display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; }
+  .ntab { font-size: 9px; padding: 2px 9px; border-radius: 7px; border: 1px solid var(--accent-border); color: var(--text-dim); cursor: pointer; background: transparent; transition: all 0.12s; }
+  .ntab.on { background: var(--accent-dim); color: var(--accent); }
+  .nlist { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; flex: 1; min-height: 0; overflow-y: auto; }
+  .nitem { padding: 0 16px 0 0; border-right: 1px solid rgba(255,255,255,0.07); margin-right: 16px; }
+  .nitem:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+  .nsrc { font-size: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .ntitle { font-size: 11px; color: var(--text-sub); line-height: 1.5; }
+  .ntime { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; margin-top: 4px; }
+
+  /* ── AI 채팅 위젯 ── */
+  .ai-widget { cursor: default; }
+  .ai-widget:hover { transform: none; }
+  .ai-messages { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; }
+  .ai-msg { display: flex; gap: 6px; align-items: flex-start; }
+  .ai-msg.user { flex-direction: row-reverse; }
+  .ai-bubble { max-width: 86%; padding: 7px 10px; font-size: 10px; line-height: 1.6; border: 1px solid var(--accent-border); border-radius: 3px 11px 11px 11px; background: var(--bg-card); color: var(--text-sub); }
+  .ai-msg.user .ai-bubble { background: var(--accent-dim); color: var(--text-main); border-radius: 11px 3px 11px 11px; }
+  .ai-ico { width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0; }
+  .ai-input-row { display: flex; gap: 6px; align-items: center; padding-top: 8px; border-top: 1px solid var(--accent-border); flex-shrink: 0; margin-top: 6px; }
+  .ai-input { flex: 1; background: none; border: none; outline: none; font-size: 10px; color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; }
+  .ai-input::placeholder { color: var(--text-dim); }
+  .ai-send { width: 22px; height: 22px; border-radius: 7px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent); cursor: pointer; flex-shrink: 0; }
+
+  /* ── 확장 뷰: left-panel 안에서 absolute로 덮음 ── */
+  .expanded-view { position: absolute; inset: 0; z-index: 5; padding: 18px 22px; display: none; animation: fadeIn 0.22s ease; background: rgba(6,9,26,0.96); backdrop-filter: blur(24px); flex-direction: column; border-radius: 14px; }
+  .expanded-view.active { display: flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .exp-header { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; flex-shrink: 0; }
+  .back-btn { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--accent-border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-sub); font-size: 15px; transition: all 0.14s; }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .exp-title { font-size: 17px; font-weight: 700; color: var(--text-main); }
+
+  /* ── AI FAB ── */
+  .ai-fab { position: fixed; bottom: 22px; right: 22px; z-index: 100; }
+  .ai-pulse { position: absolute; inset: -4px; border-radius: 19px; border: 1px solid var(--accent-border); animation: pulse 2.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:0.48;transform:scale(1.05)} }
+  .ai-btn { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--accent-border); background: rgba(8,6,22,0.94); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 17px; color: var(--accent); box-shadow: 0 0 16px rgba(255,255,255,0.12); backdrop-filter: blur(20px); transition: all 0.17s; }
+  .ai-btn:hover { box-shadow: 0 0 26px rgba(255,255,255,0.22); transform: scale(1.05); }
+
+  /* ── 채팅 ── */
+  .chat-overlay { position: fixed; bottom: 76px; right: 22px; width: 320px; max-height: 440px; z-index: 99; background: rgba(7,5,20,0.97); border: 1px solid var(--accent-border); border-radius: 18px; display: none; flex-direction: column; backdrop-filter: blur(28px); box-shadow: 0 8px 36px rgba(0,0,0,0.5); overflow: hidden; animation: slideUp 0.2s ease; }
+  .chat-overlay.active { display: flex; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+  .chat-hd { padding: 11px 14px 9px; border-bottom: 1px solid var(--accent-border); display: flex; align-items: center; gap: 8px; }
+  .chat-hd .ai-ico { width: 24px; height: 24px; border-radius: 7px; background: var(--accent-dim); border: 1px solid var(--accent-border); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .chat-hd .ct { font-size: 11px; font-weight: 600; color: var(--text-main); }
+  .chat-hd .cs { font-size: 9px; color: var(--text-dim); }
+  .chat-msgs { flex: 1; overflow-y: auto; padding: 11px; display: flex; flex-direction: column; gap: 9px; }
+  .msg { display: flex; gap: 6px; align-items: flex-start; }
+  .msg.u { flex-direction: row-reverse; }
+  .mbubble { max-width: 84%; padding: 7px 11px; font-size: 11px; line-height: 1.55; border: 1px solid var(--accent-border); }
+  .msg.ai .mbubble { background: var(--bg-card); color: var(--text-sub); border-radius: 3px 12px 12px 12px; }
+  .msg.u  .mbubble { background: var(--accent-dim); color: var(--text-main); border-radius: 12px 3px 12px 12px; }
+  .mico { width: 22px; height: 22px; border-radius: 7px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .chat-inp { padding: 9px 13px; border-top: 1px solid var(--accent-border); display: flex; gap: 7px; align-items: center; }
+  .chat-inp input { flex: 1; background: none; border: none; outline: none; font-size: 11px; color: var(--text-main); font-family: 'Noto Sans KR',sans-serif; }
+  .chat-inp input::placeholder { color: var(--text-dim); }
+  .sbtn { width: 25px; height: 25px; border-radius: 8px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--accent); cursor: pointer; }
+
+  .status-bar { position: fixed; bottom: 28px; left: 22px; z-index: 100; display: flex; align-items: center; gap: 6px; }
+  .sdot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok-color); box-shadow: 0 0 6px var(--ok-glow); animation: blink 2.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .slbl { font-family: 'Space Mono',monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.12em; }
+</style>
+</head>
+<body>
+
+<div class="stars-layer"></div>
+<div class="nebula-layer"></div>
+
+<div class="portal active" id="homeView">
+
+  <!-- 상단 바 -->
+  <div class="top-bar">
+    <!-- 좌: 인사말 + 날짜 -->
+    <div class="greeting-block">
+      <div class="greeting-line1">좋은 오후에요,&nbsp;<strong>연수님</strong>&nbsp;✦</div>
+      <div class="greeting-line2">2026.05.27 (화)</div>
+    </div>
+
+    <!-- 우: 날씨 + 음악 -->
+    <div class="top-right">
+      <div class="weather-inline">⛅ <span class="wv">24°C</span> Atlanta <span class="wrain">· 💧 30%</span></div>
+      <span class="gsep">·</span>
+      <div class="music-inline">
+        <div class="spotify-dot"></div>
+        <span class="mc-btn" title="이전">⏮</span>
+        <span class="mc-play" id="playBtn" onclick="togglePlay()">⏸</span>
+        <span class="mc-btn" title="다음">⏭</span>
+        <span class="music-title">Blinding Lights — The Weeknd</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 콘텐츠 + AI 사이드바 -->
+  <div class="portal-body">
+  <div class="left-panel">
+  <div class="main-grid">
+
+    <!-- 주식 -->
+    <div class="widget w-stocks" onclick="showExpanded('주식')">
+      <div class="wlabel"><span class="ind"></span>주식</div>
+      <div class="stabs">
+        <div class="stab on">전체</div>
+        <div class="stab">한국</div>
+        <div class="stab">미국</div>
+      </div>
+      <div class="widget-scroll">
+        <div class="sgrid">
+          <div class="scard up-card">
+            <div class="scard-top"><div class="sname">삼성전자</div><div class="schg up">▲ 2.3%</div></div>
+            <div class="sprice">72,400</div>
+            <svg class="spark" viewBox="0 0 80 24" preserveAspectRatio="none">
+              <polygon points="0,20 12,17 24,15 36,12 50,9 64,6 80,3 80,24 0,24" fill="rgba(255,110,110,0.08)"/>
+              <polyline points="0,20 12,17 24,15 36,12 50,9 64,6 80,3" fill="none" stroke="rgba(255,110,110,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="80" cy="3" r="2" fill="rgba(255,110,110,0.85)"/>
+            </svg>
+          </div>
+          <div class="scard up-card">
+            <div class="scard-top"><div class="sname">NVIDIA</div><div class="schg up">▲ 1.8%</div></div>
+            <div class="sprice">$892.54</div>
+            <svg class="spark" viewBox="0 0 80 24" preserveAspectRatio="none">
+              <polygon points="0,18 12,20 24,16 36,14 50,10 64,7 80,4 80,24 0,24" fill="rgba(255,110,110,0.08)"/>
+              <polyline points="0,18 12,20 24,16 36,14 50,10 64,7 80,4" fill="none" stroke="rgba(255,110,110,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="80" cy="4" r="2" fill="rgba(255,110,110,0.85)"/>
+            </svg>
+          </div>
+          <div class="scard dn-card">
+            <div class="scard-top"><div class="sname">카카오</div><div class="schg dn">▼ 0.7%</div></div>
+            <div class="sprice">42,150</div>
+            <svg class="spark" viewBox="0 0 80 24" preserveAspectRatio="none">
+              <polygon points="0,5 12,7 24,6 36,10 50,13 64,12 80,16 80,24 0,24" fill="rgba(100,160,255,0.08)"/>
+              <polyline points="0,5 12,7 24,6 36,10 50,13 64,12 80,16" fill="none" stroke="rgba(100,160,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="80" cy="16" r="2" fill="rgba(100,160,255,0.85)"/>
+            </svg>
+          </div>
+          <div class="scard dn-card">
+            <div class="scard-top"><div class="sname">Apple</div><div class="schg dn">▼ 0.4%</div></div>
+            <div class="sprice">$189.30</div>
+            <svg class="spark" viewBox="0 0 80 24" preserveAspectRatio="none">
+              <polygon points="0,6 12,8 24,11 36,9 50,13 64,15 80,17 80,24 0,24" fill="rgba(100,160,255,0.08)"/>
+              <polyline points="0,6 12,8 24,11 36,9 50,13 64,15 80,17" fill="none" stroke="rgba(100,160,255,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="80" cy="17" r="2" fill="rgba(100,160,255,0.85)"/>
+            </svg>
+          </div>
+          <div class="scard up-card">
+            <div class="scard-top"><div class="sname">SK하이닉스</div><div class="schg up">▲ 1.1%</div></div>
+            <div class="sprice">185,500</div>
+            <svg class="spark" viewBox="0 0 80 24" preserveAspectRatio="none">
+              <polygon points="0,19 12,21 24,17 36,14 50,11 64,8 80,5 80,24 0,24" fill="rgba(255,110,110,0.08)"/>
+              <polyline points="0,19 12,21 24,17 36,14 50,11 64,8 80,5" fill="none" stroke="rgba(255,110,110,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="80" cy="5" r="2" fill="rgba(255,110,110,0.85)"/>
+            </svg>
+          </div>
+          <div class="scard-add">+ 추가</div>
+        </div>
+      </div>
+
+      <!-- 매수/매도 추천 -->
+      <div class="srec">
+        <div class="srec-hd"><span class="srec-dot"></span>오늘의 추천</div>
+        <div class="srec-cols">
+          <div class="srec-col">
+            <div class="srec-label buy">▲ 매수</div>
+            <div class="srec-item buy">
+              <span class="srec-name">삼성전자</span>
+              <span class="srec-reason">52주 저점 근접</span>
+            </div>
+            <div class="srec-item buy">
+              <span class="srec-name">SK하이닉스</span>
+              <span class="srec-reason">과매도 구간</span>
+            </div>
+          </div>
+          <div class="srec-col">
+            <div class="srec-label sell">▼ 매도</div>
+            <div class="srec-item sell">
+              <span class="srec-name">NVIDIA</span>
+              <span class="srec-reason">52주 고점 근접</span>
+            </div>
+            <div class="srec-item sell">
+              <span class="srec-name">Apple</span>
+              <span class="srec-reason">RSI 과매수</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 이메일 -->
+    <div class="widget w-email" onclick="showExpanded('Gmail')">
+      <div class="wlabel"><span class="ind"></span>Gmail</div>
+      <div class="email-top">
+        <div class="unread-big">05</div>
+        <div class="unread-lbl">읽지 않은 메일</div>
+      </div>
+      <div class="widget-scroll">
+        <div class="elist">
+          <div class="eitem">
+            <div class="esrow"><div class="eunread"></div><div class="ename">Google Workspace</div><div class="etime" style="margin-left:auto">10:32</div></div>
+            <div class="esubj">Monthly storage usage report for your account</div>
+          </div>
+          <div class="eitem">
+            <div class="esrow"><div class="eunread"></div><div class="ename">GitHub</div><div class="etime" style="margin-left:auto">09:15</div></div>
+            <div class="esubj">[PR #142] Feature: Add dark mode support merged</div>
+          </div>
+          <div class="eitem">
+            <div class="esrow"><div class="eunread"></div><div class="ename">김민준</div><div class="etime" style="margin-left:auto">어제</div></div>
+            <div class="esubj">Re: 다음 주 미팅 일정 관련 확인 부탁드립니다</div>
+          </div>
+          <div class="eitem">
+            <div class="esrow"><div class="eread"></div><div class="ename">Notion</div><div class="etime" style="margin-left:auto">어제</div></div>
+            <div class="esubj">Your weekly digest: 3 pages updated</div>
+          </div>
+          <div class="eitem">
+            <div class="esrow"><div class="eread"></div><div class="ename">LinkedIn</div><div class="etime" style="margin-left:auto">어제</div></div>
+            <div class="esubj">You appeared in 12 searches this week</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 캘린더 -->
+    <div class="widget w-calendar" onclick="showExpanded('캘린더')">
+      <div class="wlabel" style="margin-bottom:8px"><span class="ind"></span>캘린더 &amp; 할 일</div>
+      <div class="cal-inner">
+
+        <!-- 왼쪽 열: 미니 달력 + 할 일 -->
+        <div class="cal-left-col">
+          <div class="cal-q">
+            <div class="cal-month-nav">
+              <h3>2026년 5월</h3>
+              <div class="cal-nav-btns"><button class="cnbtn">‹</button><button class="cnbtn">›</button></div>
+            </div>
+            <div class="cal-dows">
+              <span style="color:#FF8080">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span style="color:var(--accent)">토</span>
+            </div>
+            <div class="cal-days" style="flex:1">
+              <div></div><div></div><div></div><div></div>
+              <div class="cday">1</div><div class="cday has-ev">2</div><div class="cday">3</div>
+              <div class="cday" style="color:#FF8080">4</div><div class="cday">5</div><div class="cday has-ev">6</div><div class="cday">7</div><div class="cday">8</div><div class="cday">9</div><div class="cday">10</div>
+              <div class="cday" style="color:#FF8080">11</div><div class="cday">12</div><div class="cday">13</div><div class="cday">14</div><div class="cday has-ev">15</div><div class="cday">16</div><div class="cday">17</div>
+              <div class="cday" style="color:#FF8080">18</div><div class="cday">19</div><div class="cday has-ev">20</div><div class="cday">21</div><div class="cday">22</div><div class="cday">23</div><div class="cday">24</div>
+              <div class="cday" style="color:#FF8080">25</div><div class="cday">26</div><div class="cday today">27</div><div class="cday">28</div><div class="cday">29</div><div class="cday has-ev">30</div><div class="cday">31</div>
+            </div>
+          </div>
+          <div class="cal-q full">
+            <div class="sec-t" style="margin-top:0;margin-bottom:6px;">할 일</div>
+            <div class="cal-q-scroll">
+              <div class="todo-list">
+                <div class="titem"><div class="tcheck"></div><div class="ttxt">보고서 작성하기</div><div class="ttag work">업무</div></div>
+                <div class="titem"><div class="tcheck"></div><div class="ttxt">헬스장 가기</div><div class="ttag">개인</div></div>
+                <div class="titem"><div class="tcheck done"></div><div class="ttxt done">이메일 확인</div><div class="ttag">개인</div></div>
+                <div class="titem"><div class="tcheck done"></div><div class="ttxt done">주간 리포트</div><div class="ttag work">업무</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 오른쪽 열: 오늘 일정 풀 높이 -->
+        <div class="cal-q full">
+          <div class="today-hd">
+            <h4>오늘</h4>
+            <div class="tdate">05.27 · 화</div>
+          </div>
+          <div class="cal-q-scroll">
+            <div class="ev-list">
+              <div class="ev-item"><div class="ev-bar work"></div><div><div class="ev-title">팀 스탠드업</div><div class="ev-time">09:30</div></div></div>
+              <div class="ev-item"><div class="ev-bar"></div><div><div class="ev-title">팀 미팅</div><div class="ev-time">14:00</div></div></div>
+              <div class="ev-item"><div class="ev-bar"></div><div><div class="ev-title">헬스장</div><div class="ev-time">18:00</div></div></div>
+              <div class="ev-item"><div class="ev-bar"></div><div><div class="ev-title">저녁 약속</div><div class="ev-time">19:30</div></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 뉴스 (7칸으로 축소) -->
+    <div class="widget w-news" onclick="showExpanded('뉴스')">
+      <div class="wlabel"><span class="ind"></span>뉴스</div>
+      <div class="ntabs">
+        <div class="ntab on">전체</div>
+        <div class="ntab">기술 / AI</div>
+        <div class="ntab">경제 / 투자</div>
+        <div class="ntab">국내</div>
+      </div>
+      <div class="nlist" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="nitem">
+          <div class="nsrc">TechCrunch</div>
+          <div class="ntitle">OpenAI releases GPT-5 with enhanced reasoning capabilities for enterprise customers</div>
+          <div class="ntime">2h ago</div>
+        </div>
+        <div class="nitem">
+          <div class="nsrc">연합뉴스</div>
+          <div class="ntitle">한국 반도체 수출 3개월 연속 증가…AI 수요 견인</div>
+          <div class="ntime">4h ago</div>
+        </div>
+        <div class="nitem">
+          <div class="nsrc">Bloomberg</div>
+          <div class="ntitle">Fed signals potential rate cut as inflation data eases toward 2% target</div>
+          <div class="ntime">6h ago</div>
+        </div>
+        <div class="nitem">
+          <div class="nsrc">Wired</div>
+          <div class="ntitle">Apple M4 chip delivers 40% performance boost in MacBook Pro</div>
+          <div class="ntime">8h ago</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <!-- 확장 뷰: left-panel 안에서 절대 위치로 위젯 영역만 덮음 -->
+  <div class="expanded-view" id="expandedView">
+    <div class="exp-header">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <div class="exp-title" id="expTitle"></div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:12px;">
+      위젯 확장 뷰 — 실제 구현 시 각 컴포넌트로 대체됩니다
+    </div>
+  </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- 미세 구분선 -->
+  <div class="panel-divider"></div>
+
+  <!-- AI 사이드바 -->
+  <div class="ai-sidebar">
+    <div class="ai-sidebar-hd">
+      <div class="ai-dot"></div>
+      <div class="ai-title">AI 비서 ✦</div>
+    </div>
+
+    <!-- 우주 + 오브 + 답변 -->
+    <div class="ai-cosmos" id="aiCosmos">
+      <!-- 별은 JS로 생성 -->
+      <div class="ai-orb">
+        <div class="orb-ring r1"></div>
+        <div class="orb-ring r2"></div>
+        <div class="orb-ring r3"></div>
+        <div class="orb-core">✦</div>
+      </div>
+      <div class="ai-response" id="aiResponse">안녕하세요, 연수님.<br>무엇이든 물어보세요.</div>
+    </div>
+
+    <div class="ai-inp">
+      <input type="text" id="aiInput" placeholder="무엇이든 물어보세요..." onkeydown="if(event.key==='Enter')sendAI()">
+      <div class="ai-send" onclick="sendAI()">↑</div>
+    </div>
+  </div>
+
+  </div><!-- /portal-body -->
+</div>
+
+<div class="status-bar">
+  <div class="sdot"></div>
+  <span class="slbl">MY SPACE</span>
+</div>
+
+<script>
+  // 별 생성
+  const cosmos = document.getElementById('aiCosmos')
+  for (let i = 0; i < 36; i++) {
+    const s = document.createElement('div')
+    s.className = 'ai-star'
+    const sz = Math.random() * 1.6 + 0.4
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${1.8+Math.random()*3}s;--delay:-${Math.random()*4}s;`
+    cosmos.appendChild(s)
+  }
+
+  // AI 답변 (mock)
+  const mockReplies = [
+    '네, 알겠어요 연수님.',
+    '삼성전자(▲2.3%), NVIDIA(▲1.8%) 올랐고, 카카오 소폭 하락했어요.',
+    '5/28 오전 10시 헬스장 추가했어요 💪',
+    '오늘 오후 2시 팀 미팅이 있어요. 준비해두세요.',
+    '읽지 않은 메일 5개 있어요. 확인해볼까요?',
+  ]
+  let replyIdx = 0
+  function sendAI() {
+    const input = document.getElementById('aiInput')
+    if (!input.value.trim()) return
+    input.value = ''
+    const resp = document.getElementById('aiResponse')
+    resp.classList.remove('active')
+    resp.innerHTML = '<span style="opacity:0.35;letter-spacing:.1em;font-size:10px;">···</span>'
+    setTimeout(() => {
+      resp.innerHTML = mockReplies[replyIdx % mockReplies.length]
+      resp.classList.add('active')
+      replyIdx++
+    }, 700)
+  }
+
+  let playing = true
+  function showExpanded(title) {
+    document.getElementById('expTitle').textContent = title
+    document.querySelector('.main-grid').style.display = 'none'
+    const ev = document.getElementById('expandedView')
+    ev.classList.add('active')
+  }
+  function goHome() {
+    document.querySelector('.main-grid').style.display = 'grid'
+    document.getElementById('expandedView').classList.remove('active')
+  }
+  function togglePlay() {
+    playing = !playing
+    document.getElementById('playBtn').textContent = playing ? '⏸' : '▶'
+  }
+</script>
+</body>
+</html>

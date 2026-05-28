@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY SPACE — v6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #FBCFE8;
+    --accent-dim: rgba(251,140,200,0.09);
+    --accent-border: rgba(251,140,200,0.18);
+    --accent-glow: rgba(251,180,220,0.28);
+    --text-main: #FDF2F8;
+    --text-sub: #C4A0B8;
+    --text-dim: #5A4050;
+    --bg-app: #06091A;
+    --bg-card: rgba(10,8,28,0.85);
+    --ok-color: #FDE68A;
+    --ok-glow: rgba(253,220,138,0.32);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-app); color: var(--text-main); }
+
+  .stars-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(1px 1px at 8% 18%, rgba(251,207,232,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 72% 8%, rgba(251,207,232,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 40% 55%, rgba(251,207,232,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 40%, rgba(251,207,232,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 80%, rgba(251,207,232,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 88%, rgba(251,207,232,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 10%, rgba(251,207,232,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 95% 68%, rgba(251,207,232,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 22% 60%, rgba(251,207,232,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 78% 24%, rgba(251,207,232,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 42%, rgba(251,207,232,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 14% 46%, rgba(251,207,232,0.35) 0%, transparent 100%);
+  }
+  .nebula-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 38% at 15% 28%, rgba(180,80,160,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 32% at 82% 68%, rgba(100,80,200,0.05) 0%, transparent 70%);
+  }
+
+  /* ── 포털: 딱 100vh, 스크롤 없음 ── */
+  .portal {
+    position: relative; z-index: 10;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 22px 16px;
+    display: none;
+  }
+  .portal.active { display: flex; }
+
+  /* ── 상단 바 ── */
+  .top-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+  /* 좌: 스크린샷 스타일 인사말 */
+  .greeting-block {}
+  .greeting-line1 { font-size: 14px; color: var(--text-sub); font-weight: 400; }
+  .greeting-line1 strong { color: var(--text-main); font-weight: 700; }
+  .greeting-line2 {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 3px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* 우: 날씨·음악 인라인 + 설정 */
+  .top-right { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+  .info-chips { display: flex; align-items: center; gap: 6px; }
+  .chip { font-size: 10px; color: var(--text-dim); display: flex; align-items: center; gap: 3px; }
+  .chip .val { color: var(--text-sub); }
+  .chip-sep { color: var(--text-dim); font-size: 10px; opacity: 0.5; }
+
+  /* 설정 팝오버 */
+  .settings-wrap { position: relative; }
+  .settings-btn {
+    width: 24px; height: 24px; border-radius: 7px;
+    border: 1px solid var(--accent-border);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-dim); font-size: 12px;
+    transition: all 0.15s;
+  }
+  .settings-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .settings-panel {
+    position: absolute; top: 30px; right: 0;
+    background: rgba(7,5,20,0.97);
+    border: 1px solid var(--accent-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    backdrop-filter: blur(24px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+    display: none; min-width: 130px; z-index: 200;
+    animation: fadeIn 0.16s ease;
+  }
+  .settings-panel.open { display: block; }
+  .sp-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 9px; }
+  .sp-dots { display: flex; gap: 7px; }
+  .spdot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; opacity: 0.4; transition: all 0.16s; }
+  .spdot.active { opacity: 1; transform: scale(1.25); outline: 2px solid rgba(255,255,255,0.2); outline-offset: 2px; }
+
+  /* ── 벤토: 남은 공간 전부 사용 ── */
+  .bento {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: 1fr 1.15fr 0.9fr;
+    gap: 10px;
+  }
+
+  /* 위젯 공통 */
+  .widget {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    backdrop-filter: blur(20px);
+    position: relative; overflow: hidden;
+    min-height: 0;
+    display: flex; flex-direction: column;
+  }
+  .widget:hover { border-color: rgba(251,207,232,0.30); box-shadow: 0 0 16px rgba(251,140,200,0.07); transform: translateY(-1px); }
+  .widget::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(251,207,232,0.18), transparent); opacity: 0; transition: opacity 0.18s; }
+  .widget:hover::after { opacity: 1; }
+
+  .wlabel { font-size: 9px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .wlabel .ind { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent-glow); }
+
+  .w-stocks   { grid-column: span 5; }
+  .w-email    { grid-column: span 7; }
+  .w-calendar { grid-column: span 12; }
+  .w-news     { grid-column: span 12; }
+
+  /* ── 주식 ── */
+  .stabs { display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; }
+  .stab { font-size: 9px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--accent-border); color: var(--text-dim); cursor: pointer; background: transparent; }
+  .stab.on { background: var(--accent-dim); color: var(--accent); }
+  .slist { display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: space-evenly; }
+  .sitem { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border-radius: 9px; border: 1px solid var(--accent-border); background: rgba(251,140,200,0.02); }
+  .sname { font-size: 11px; color: var(--text-main); font-weight: 500; }
+  .scode { font-size: 8px; color: var(--text-dim); font-family: 'Space Mono',monospace; margin-top: 1px; }
+  .sprice { font-family: 'Space Mono',monospace; font-size: 11px; color: var(--text-main); text-align: right; }
+  .schg { font-size: 9px; margin-top: 1px; text-align: right; }
+  .up { color: #ff7878; } .dn { color: #78b0ff; }
+  .sadd { font-size: 9px; color: var(--text-dim); text-align: center; cursor: pointer; padding: 4px; border-radius: 7px; border: 1px dashed var(--accent-border); transition: all 0.14s; flex-shrink: 0; margin-top: 6px; }
+  .sadd:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── 이메일 ── */
+  .email-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+  .unread-big { font-family: 'Space Mono',monospace; font-size: 20px; font-weight: 700; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); line-height: 1; }
+  .unread-lbl { font-size: 9px; color: var(--text-dim); }
+  .elist { display: flex; flex-direction: column; flex: 1; justify-content: space-evenly; }
+  .eitem { padding: 5px 0; border-bottom: 1px solid rgba(251,140,200,0.06); cursor: pointer; }
+  .eitem:last-child { border-bottom: none; }
+  .esrow { display: flex; align-items: center; gap: 5px; }
+  .eunread { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .eread   { width: 4px; height: 4px; flex-shrink: 0; }
+  .ename { font-size: 11px; color: var(--text-main); font-weight: 500; }
+  .esubj { font-size: 10px; color: var(--text-sub); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .etime { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; }
+
+  /* ── 캘린더 ── */
+  .cal-inner { display: grid; grid-template-columns: 1fr 1fr; flex: 1; min-height: 0; position: relative; }
+  .cal-divider { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--accent-border); pointer-events: none; }
+  .cal-left { padding-right: 20px; display: flex; flex-direction: column; }
+  .cal-right { padding-left: 20px; display: flex; flex-direction: column; }
+
+  .cal-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-shrink: 0; }
+  .cal-month-nav h3 { font-size: 11px; font-weight: 700; color: var(--text-main); }
+  .cal-nav-btns { display: flex; gap: 3px; }
+  .cnbtn { width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--accent-border); background: rgba(251,140,200,0.04); color: var(--text-sub); font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .cal-dows { display: grid; grid-template-columns: repeat(7, 1fr); flex-shrink: 0; }
+  .cal-dows span { text-align: center; font-size: 8px; color: var(--text-dim); padding: 2px 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; flex: 1; align-content: start; }
+  .cday { text-align: center; font-size: 9px; font-family: 'Space Mono',monospace; padding: 3px 1px; border-radius: 5px; color: var(--text-dim); cursor: pointer; position: relative; transition: background 0.12s; }
+  .cday:hover { background: var(--accent-dim); color: var(--text-sub); }
+  .cday.today { background: var(--accent); color: var(--bg-app); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: auto; box-shadow: 0 0 7px var(--accent-glow); font-weight: 700; }
+  .cday.has-ev::after { content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 2px; height: 2px; border-radius: 50%; background: var(--accent); }
+  .cday.today.has-ev::after { display: none; }
+
+  .today-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-shrink: 0; }
+  .today-hd h4 { font-size: 11px; font-weight: 700; color: var(--text-main); }
+  .today-hd .tdate { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; }
+  .sec-t { font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; margin-top: 8px; flex-shrink: 0; }
+  .sec-t:first-of-type { margin-top: 0; }
+  .ev-list { display: flex; flex-direction: column; gap: 4px; }
+  .ev-item { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--accent-border); background: rgba(251,140,200,0.02); }
+  .ev-bar { width: 2px; height: 20px; border-radius: 2px; background: var(--accent); flex-shrink: 0; }
+  .ev-bar.work { background: var(--ok-color); }
+  .ev-title { font-size: 11px; color: var(--text-main); }
+  .ev-time { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; margin-top: 1px; }
+  .todo-list { display: flex; flex-direction: column; gap: 4px; }
+  .titem { display: flex; align-items: center; gap: 6px; }
+  .tcheck { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--accent-border); flex-shrink: 0; position: relative; }
+  .tcheck.done { background: var(--ok-color); border-color: var(--ok-color); }
+  .tcheck.done::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 7px; color: var(--bg-app); }
+  .ttxt { font-size: 11px; color: var(--text-sub); flex: 1; }
+  .ttxt.done { text-decoration: line-through; color: var(--text-dim); }
+  .ttag { font-size: 8px; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--accent-border); color: var(--accent); background: var(--accent-dim); flex-shrink: 0; }
+  .ttag.work { color: var(--ok-color); border-color: rgba(253,220,138,0.26); }
+
+  /* ── 뉴스 ── */
+  .ntabs { display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; }
+  .ntab { font-size: 9px; padding: 2px 9px; border-radius: 7px; border: 1px solid var(--accent-border); color: var(--text-dim); cursor: pointer; background: transparent; transition: all 0.12s; }
+  .ntab.on { background: var(--accent-dim); color: var(--accent); }
+  .nlist { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 20px; flex: 1; }
+  .nitem { padding: 0; border-right: 1px solid rgba(251,140,200,0.07); padding-right: 20px; display: flex; flex-direction: column; justify-content: center; }
+  .nitem:last-child { border-right: none; padding-right: 0; }
+  .nsrc { font-size: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .ntitle { font-size: 11px; color: var(--text-sub); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .ntime { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono',monospace; margin-top: 4px; }
+
+  /* ── 확장 뷰 ── */
+  .expanded-view { position: fixed; inset: 0; z-index: 10; padding: 18px 22px; display: none; animation: fadeIn 0.22s ease; background: var(--bg-app); flex-direction: column; }
+  .expanded-view.active { display: flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .exp-header { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; flex-shrink: 0; }
+  .back-btn { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--accent-border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-sub); font-size: 15px; transition: all 0.14s; }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .exp-title { font-size: 17px; font-weight: 700; color: var(--text-main); }
+
+  /* ── AI FAB ── */
+  .ai-fab { position: fixed; bottom: 22px; right: 22px; z-index: 100; }
+  .ai-pulse { position: absolute; inset: -4px; border-radius: 19px; border: 1px solid var(--accent-border); animation: pulse 2.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:0.48;transform:scale(1.05)} }
+  .ai-btn { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--accent-border); background: rgba(8,6,22,0.94); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 17px; color: var(--accent); box-shadow: 0 0 16px rgba(251,140,200,0.12); backdrop-filter: blur(20px); transition: all 0.17s; }
+  .ai-btn:hover { box-shadow: 0 0 26px rgba(251,140,200,0.22); transform: scale(1.05); }
+
+  /* ── 채팅 오버레이 ── */
+  .chat-overlay { position: fixed; bottom: 76px; right: 22px; width: 320px; max-height: 440px; z-index: 99; background: rgba(7,5,20,0.97); border: 1px solid var(--accent-border); border-radius: 18px; display: none; flex-direction: column; backdrop-filter: blur(28px); box-shadow: 0 8px 36px rgba(0,0,0,0.5); overflow: hidden; animation: slideUp 0.2s ease; }
+  .chat-overlay.active { display: flex; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+  .chat-hd { padding: 11px 14px 9px; border-bottom: 1px solid var(--accent-border); display: flex; align-items: center; gap: 8px; }
+  .chat-hd .ai-ico { width: 24px; height: 24px; border-radius: 7px; background: var(--accent-dim); border: 1px solid var(--accent-border); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .chat-hd .ct { font-size: 11px; font-weight: 600; color: var(--text-main); }
+  .chat-hd .cs { font-size: 9px; color: var(--text-dim); }
+  .chat-msgs { flex: 1; overflow-y: auto; padding: 11px; display: flex; flex-direction: column; gap: 9px; }
+  .msg { display: flex; gap: 6px; align-items: flex-start; }
+  .msg.u { flex-direction: row-reverse; }
+  .mbubble { max-width: 84%; padding: 7px 11px; font-size: 11px; line-height: 1.55; border: 1px solid var(--accent-border); }
+  .msg.ai .mbubble { background: var(--bg-card); color: var(--text-sub); border-radius: 3px 12px 12px 12px; }
+  .msg.u  .mbubble { background: var(--accent-dim); color: var(--text-main); border-radius: 12px 3px 12px 12px; }
+  .mico { width: 22px; height: 22px; border-radius: 7px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .chat-inp { padding: 9px 13px; border-top: 1px solid var(--accent-border); display: flex; gap: 7px; align-items: center; }
+  .chat-inp input { flex: 1; background: none; border: none; outline: none; font-size: 11px; color: var(--text-main); font-family: 'Noto Sans KR',sans-serif; }
+  .chat-inp input::placeholder { color: var(--text-dim); }
+  .sbtn { width: 25px; height: 25px; border-radius: 8px; border: 1px solid var(--accent-border); background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--accent); cursor: pointer; }
+
+  /* 상태 */
+  .status-bar { position: fixed; bottom: 28px; left: 22px; z-index: 100; display: flex; align-items: center; gap: 6px; }
+  .sdot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok-color); box-shadow: 0 0 6px var(--ok-glow); animation: blink 2.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .slbl { font-family: 'Space Mono',monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.12em; }
+</style>
+</head>
+<body>
+
+<div class="stars-layer"></div>
+<div class="nebula-layer"></div>
+
+<!-- ══ 홈 ══ -->
+<div class="portal active" id="homeView">
+
+  <!-- 상단 바 -->
+  <div class="top-bar">
+    <!-- 인사말: 스크린샷 스타일 -->
+    <div class="greeting-block">
+      <div class="greeting-line1">좋은 오후에요, <strong>연수님</strong> ✦</div>
+      <div class="greeting-line2">2026.05.27 (화)</div>
+    </div>
+    <!-- 우: 날씨·음악 텍스트 + 설정 -->
+    <div class="top-right">
+      <div class="info-chips">
+        <div class="chip">⛅ <span class="val">24°C</span></div>
+        <span class="chip-sep">·</span>
+        <div class="chip">♪ <span class="val">Blinding Lights</span></div>
+      </div>
+      <div class="settings-wrap">
+        <button class="settings-btn" onclick="toggleSettings()">⊹</button>
+        <div class="settings-panel" id="settingsPanel">
+          <div class="sp-label">테마</div>
+          <div class="sp-dots">
+            <div class="spdot active" style="background:#F9A8D4"></div>
+            <div class="spdot" style="background:#93C5FD"></div>
+            <div class="spdot" style="background:#FCA5A5"></div>
+            <div class="spdot" style="background:#FDE68A"></div>
+            <div class="spdot" style="background:#A78BFA"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 벤토: 남은 공간 100% 채움 -->
+  <div class="bento">
+
+    <!-- 주식 -->
+    <div class="widget w-stocks" onclick="showExpanded('주식')">
+      <div class="wlabel"><span class="ind"></span>주식</div>
+      <div class="stabs">
+        <div class="stab on">전체</div>
+        <div class="stab">한국</div>
+        <div class="stab">미국</div>
+      </div>
+      <div class="slist">
+        <div class="sitem">
+          <div><div class="sname">삼성전자</div><div class="scode">005930 · KOSPI</div></div>
+          <div><div class="sprice">72,400</div><div class="schg up">▲ 2.3%</div></div>
+        </div>
+        <div class="sitem">
+          <div><div class="sname">NVIDIA</div><div class="scode">NVDA · NASDAQ</div></div>
+          <div><div class="sprice">$892.54</div><div class="schg up">▲ 1.8%</div></div>
+        </div>
+        <div class="sitem">
+          <div><div class="sname">카카오</div><div class="scode">035720 · KOSDAQ</div></div>
+          <div><div class="sprice">42,150</div><div class="schg dn">▼ 0.7%</div></div>
+        </div>
+      </div>
+      <div class="sadd">+ 종목 추가</div>
+    </div>
+
+    <!-- 이메일 -->
+    <div class="widget w-email" onclick="showExpanded('Gmail')">
+      <div class="wlabel"><span class="ind"></span>Gmail</div>
+      <div class="email-top">
+        <div class="unread-big">05</div>
+        <div class="unread-lbl">읽지 않은 메일</div>
+      </div>
+      <div class="elist">
+        <div class="eitem">
+          <div class="esrow"><div class="eunread"></div><div class="ename">Google Workspace</div><div class="etime" style="margin-left:auto">10:32</div></div>
+          <div class="esubj">Monthly storage usage report for your account</div>
+        </div>
+        <div class="eitem">
+          <div class="esrow"><div class="eunread"></div><div class="ename">GitHub</div><div class="etime" style="margin-left:auto">09:15</div></div>
+          <div class="esubj">[PR #142] Feature: Add dark mode support merged</div>
+        </div>
+        <div class="eitem">
+          <div class="esrow"><div class="eunread"></div><div class="ename">김민준</div><div class="etime" style="margin-left:auto">어제</div></div>
+          <div class="esubj">Re: 다음 주 미팅 일정 관련 확인 부탁드립니다</div>
+        </div>
+        <div class="eitem">
+          <div class="esrow"><div class="eread"></div><div class="ename">Notion</div><div class="etime" style="margin-left:auto">어제</div></div>
+          <div class="esubj">Your weekly digest: 3 pages updated</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 캘린더 + 할일 -->
+    <div class="widget w-calendar" onclick="showExpanded('캘린더')">
+      <div class="wlabel" style="margin-bottom:10px"><span class="ind"></span>캘린더 &amp; 할 일</div>
+      <div class="cal-inner">
+        <div class="cal-divider"></div>
+
+        <!-- 좌: 월 캘린더 -->
+        <div class="cal-left">
+          <div class="cal-month-nav">
+            <h3>2026년 5월</h3>
+            <div class="cal-nav-btns"><button class="cnbtn">‹</button><button class="cnbtn">›</button></div>
+          </div>
+          <div class="cal-dows">
+            <span style="color:#FF8080">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span style="color:var(--accent)">토</span>
+          </div>
+          <div class="cal-days">
+            <div></div><div></div><div></div><div></div>
+            <div class="cday">1</div><div class="cday has-ev">2</div><div class="cday">3</div>
+            <div class="cday" style="color:#FF8080">4</div><div class="cday">5</div><div class="cday has-ev">6</div><div class="cday">7</div><div class="cday">8</div><div class="cday">9</div><div class="cday">10</div>
+            <div class="cday" style="color:#FF8080">11</div><div class="cday">12</div><div class="cday">13</div><div class="cday">14</div><div class="cday has-ev">15</div><div class="cday">16</div><div class="cday">17</div>
+            <div class="cday" style="color:#FF8080">18</div><div class="cday">19</div><div class="cday has-ev">20</div><div class="cday">21</div><div class="cday">22</div><div class="cday">23</div><div class="cday">24</div>
+            <div class="cday" style="color:#FF8080">25</div><div class="cday">26</div><div class="cday today">27</div><div class="cday">28</div><div class="cday">29</div><div class="cday has-ev">30</div><div class="cday">31</div>
+          </div>
+        </div>
+
+        <!-- 우: 오늘 -->
+        <div class="cal-right">
+          <div class="today-hd">
+            <h4>오늘</h4>
+            <div class="tdate">05.27 · 화</div>
+          </div>
+          <div class="sec-t">일정</div>
+          <div class="ev-list">
+            <div class="ev-item"><div class="ev-bar work"></div><div><div class="ev-title">팀 스탠드업</div><div class="ev-time">09:30</div></div></div>
+            <div class="ev-item"><div class="ev-bar"></div><div><div class="ev-title">팀 미팅</div><div class="ev-time">14:00</div></div></div>
+          </div>
+          <div class="sec-t">할 일</div>
+          <div class="todo-list">
+            <div class="titem"><div class="tcheck"></div><div class="ttxt">보고서 작성하기</div><div class="ttag work">업무</div></div>
+            <div class="titem"><div class="tcheck"></div><div class="ttxt">헬스장 가기</div><div class="ttag">개인</div></div>
+            <div class="titem"><div class="tcheck done"></div><div class="ttxt done">이메일 확인</div><div class="ttag">개인</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 뉴스 -->
+    <div class="widget w-news" onclick="showExpanded('뉴스')">
+      <div class="wlabel"><span class="ind"></span>뉴스</div>
+      <div class="ntabs">
+        <div class="ntab on">전체</div>
+        <div class="ntab">기술 / AI</div>
+        <div class="ntab">경제 / 투자</div>
+        <div class="ntab">국내</div>
+      </div>
+      <div class="nlist">
+        <div class="nitem">
+          <div class="nsrc">TechCrunch</div>
+          <div class="ntitle">OpenAI releases GPT-5 with enhanced reasoning capabilities for enterprise customers</div>
+          <div class="ntime">2h ago</div>
+        </div>
+        <div class="nitem">
+          <div class="nsrc">연합뉴스</div>
+          <div class="ntitle">한국 반도체 수출 3개월 연속 증가…AI 수요 견인</div>
+          <div class="ntime">4h ago</div>
+        </div>
+        <div class="nitem">
+          <div class="nsrc">Bloomberg</div>
+          <div class="ntitle">Fed signals potential rate cut as inflation data eases toward 2% target</div>
+          <div class="ntime">6h ago</div>
+        </div>
+        <div class="nitem">
+          <div class="nsrc">Wired</div>
+          <div class="ntitle">Apple M4 chip delivers 40% performance boost in new MacBook Pro benchmarks</div>
+          <div class="ntime">8h ago</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ 확장 뷰 ══ -->
+<div class="expanded-view" id="expandedView">
+  <div class="exp-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="exp-title" id="expTitle">캘린더</div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:12px;">
+    위젯 확장 뷰 — 구현 시 실제 컴포넌트로 대체
+  </div>
+</div>
+
+<!-- ══ AI FAB ══ -->
+<div class="ai-fab">
+  <div class="ai-pulse"></div>
+  <button class="ai-btn" onclick="toggleChat()">✦</button>
+</div>
+
+<div class="chat-overlay" id="chatOverlay">
+  <div class="chat-hd">
+    <div class="ai-ico">✦</div>
+    <div><div class="ct">AI 비서</div><div class="cs">나만을 위한 자비스</div></div>
+  </div>
+  <div class="chat-msgs">
+    <div class="msg ai">
+      <div class="mico">✦</div>
+      <div class="mbubble">안녕하세요, 연수님 ✦<br>오늘 오후 2시 팀 미팅 있고, 삼성전자 2.3% 올랐어요. 읽지 않은 메일 5개 있어요.</div>
+    </div>
+    <div class="msg u">
+      <div class="mico">👤</div>
+      <div class="mbubble">내일 오전 10시 헬스장 추가해줘</div>
+    </div>
+    <div class="msg ai">
+      <div class="mico">✦</div>
+      <div class="mbubble">5/28 오전 10시 헬스장 추가했어요 💪</div>
+    </div>
+  </div>
+  <div class="chat-inp">
+    <input type="text" placeholder="메시지를 입력하세요...">
+    <button class="sbtn">↑</button>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="sdot"></div>
+  <span class="slbl">MY SPACE</span>
+</div>
+
+<script>
+  let chatOpen = false, settingsOpen = false
+  function showExpanded(title) {
+    document.getElementById('expTitle').textContent = title
+    document.getElementById('homeView').classList.remove('active')
+    document.getElementById('expandedView').classList.add('active')
+  }
+  function goHome() {
+    document.getElementById('expandedView').classList.remove('active')
+    document.getElementById('homeView').classList.add('active')
+  }
+  function toggleChat() {
+    chatOpen = !chatOpen
+    document.getElementById('chatOverlay').classList.toggle('active', chatOpen)
+  }
+  function toggleSettings() {
+    settingsOpen = !settingsOpen
+    document.getElementById('settingsPanel').classList.toggle('open', settingsOpen)
+  }
+  document.addEventListener('click', e => {
+    if (!document.querySelector('.settings-wrap').contains(e.target)) {
+      settingsOpen = false
+      document.getElementById('settingsPanel').classList.remove('open')
+    }
+  })
+  document.querySelectorAll('.spdot').forEach(d => {
+    d.addEventListener('click', () => {
+      document.querySelectorAll('.spdot').forEach(x => x.classList.remove('active'))
+      d.classList.add('active')
+    })
+  })
+</script>
+</body>
+</html>

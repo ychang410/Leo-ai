@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포털 레이아웃 미리보기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #FBCFE8;
+  --accent-dim: rgba(251,140,200,0.10);
+  --accent-border: rgba(251,140,200,0.20);
+  --text-main: #FDF2F8;
+  --text-sub: #C4A0B8;
+  --text-dim: #4A3040;
+  --bg: #06091A;
+  --bg-card: rgba(12,9,30,0.85);
+  --bg-topbar: rgba(7,9,24,0.97);
+  --ok: #FDE68A;
+  --up: #86EFAC;
+  --down: #FCA5A5;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 별 배경 */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 7% 12%, rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 18% 35%, rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 25% 6%, rgba(210,220,255,.9) 0%,transparent 100%),
+    radial-gradient(2px 2px at 38% 22%, rgba(190,200,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 78%, rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 44%, rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 63% 15%, rgba(210,220,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 75% 29%, rgba(255,255,255,.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 82% 71%, rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 90% 17%, rgba(210,220,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 12% 56%, rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 44% 91%, rgba(190,200,255,.5) 0%,transparent 100%),
+    radial-gradient(2px 2px at 70% 55%, rgba(190,200,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 95% 88%, rgba(255,255,255,.5) 0%,transparent 100%);
+  animation: twinkle 5s ease-in-out infinite alternate;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 55% 45% at 15% 25%, rgba(60,50,160,.09) 0%,transparent 70%),
+    radial-gradient(ellipse 45% 55% at 85% 75%, rgba(100,40,180,.06) 0%,transparent 70%);
+}
+@keyframes twinkle { 0%{opacity:.5} 100%{opacity:1} }
+
+/* ── 탑바 ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 0;
+  height: 52px;
+  background: var(--bg-topbar);
+  border-bottom: 1px solid var(--accent-border);
+  backdrop-filter: blur(20px);
+  padding: 0 24px;
+}
+.topbar-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-right: 32px;
+  display: flex; align-items: center; gap-8px;
+}
+.logo-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); margin-right: 8px; }
+.topbar-nav { display: flex; gap: 2px; flex: 1; }
+.nav-btn {
+  padding: 6px 14px; border-radius: 9px; font-size: 13px;
+  color: var(--text-dim); cursor: pointer; border: 1px solid transparent;
+  transition: all .15s;
+}
+.nav-btn.active {
+  color: var(--accent); background: var(--accent-dim);
+  border-color: var(--accent-border);
+}
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.theme-dot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; }
+
+/* ── 메인 그리드 ── */
+.main {
+  position: relative; z-index: 1;
+  padding: 20px 24px 40px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto;
+  gap: 12px;
+}
+
+/* ── 카드 기본 ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-border);
+  border-radius: 16px;
+  padding: 18px;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  position: relative;
+}
+.card-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text-dim);
+  margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;
+}
+.card-label-action { font-size: 9px; color: var(--text-dim); cursor: pointer; opacity: .6; }
+
+/* ── 날씨 위젯 ── */
+.weather { grid-column: span 3; }
+.weather-city { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.weather-city-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
+.weather-city-tag { font-size: 9px; color: var(--text-dim); background: var(--accent-dim); padding: 1px 6px; border-radius: 20px; }
+.weather-temp { font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; color: var(--accent); text-shadow: 0 0 20px rgba(251,180,220,.4); line-height: 1; margin: 6px 0; }
+.weather-desc { font-size: 12px; color: var(--text-sub); margin-bottom: 14px; }
+.weather-extra { display: flex; gap: 12px; }
+.weather-extra-item { font-size: 10px; color: var(--text-dim); }
+.weather-extra-item span { color: var(--text-sub); font-weight: 500; }
+.weather-divider { height: 1px; background: var(--accent-border); margin: 14px 0; }
+.weather-list { display: flex; flex-direction: column; gap: 8px; }
+.weather-other { display: flex; align-items: center; justify-content: space-between; }
+.weather-other-city { font-size: 11px; color: var(--text-sub); }
+.weather-other-temp { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); }
+
+/* ── 주식 위젯 ── */
+.stocks { grid-column: span 5; }
+.stock-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.stock-tab { font-size: 10px; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid var(--accent-border); color: var(--text-dim); }
+.stock-tab.active { background: var(--accent-dim); color: var(--accent); }
+.stock-list { display: flex; flex-direction: column; gap: 8px; }
+.stock-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(251,140,200,.04); border: 1px solid rgba(251,140,200,.08); }
+.stock-ticker { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: var(--accent); width: 60px; flex-shrink: 0; }
+.stock-name { font-size: 11px; color: var(--text-sub); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stock-price { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-main); text-align: right; }
+.stock-change { font-size: 11px; text-align: right; width: 56px; flex-shrink: 0; font-family: 'Space Mono', monospace; }
+.stock-change.up { color: var(--up); }
+.stock-change.down { color: var(--down); }
+.stock-add { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border-radius: 10px; border: 1px dashed var(--accent-border); color: var(--text-dim); font-size: 11px; cursor: pointer; }
+
+/* ── 메일 위젯 ── */
+.email { grid-column: span 4; }
+.email-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.email-badge { font-size: 9px; padding: 2px 7px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+.email-list { display: flex; flex-direction: column; gap: 6px; }
+.email-item { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--accent-border); background: var(--accent-dim); cursor: pointer; }
+.email-item.unread { border-color: rgba(251,140,200,.25); background: rgba(251,140,200,.06); }
+.email-from { font-size: 11px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.email-from-time { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--text-dim); font-weight: 400; }
+.email-subject { font-size: 11px; color: var(--text-sub); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.email-preview { font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.unread-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent); flex-shrink: 0; display: inline-block; }
+
+/* ── 뉴스 위젯 ── */
+.news { grid-column: span 7; }
+.news-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.news-tab { font-size: 10px; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid var(--accent-border); color: var(--text-dim); }
+.news-tab.active { background: var(--accent-dim); color: var(--accent); }
+.news-list { display: flex; flex-direction: column; gap: 8px; }
+.news-item { display: flex; gap: 12px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--accent-border); background: var(--accent-dim); cursor: pointer; transition: border-color .15s; }
+.news-item:hover { border-color: rgba(251,180,220,.35); }
+.news-source { font-size: 9px; padding: 2px 7px; border-radius: 20px; border: 1px solid var(--accent-border); color: var(--text-dim); white-space: nowrap; align-self: flex-start; margin-top: 2px; flex-shrink: 0; }
+.news-content { flex: 1; min-width: 0; }
+.news-title { font-size: 12px; font-weight: 500; color: var(--text-main); margin-bottom: 3px; line-height: 1.4; }
+.news-meta { font-size: 10px; color: var(--text-dim); display: flex; gap: 8px; }
+.news-tag { color: var(--accent); }
+
+/* ── 캘린더 위젯 ── */
+.calendar-w { grid-column: span 3; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-month { font-size: 12px; font-weight: 600; color: var(--text-main); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-dow { text-align: center; font-size: 9px; color: var(--text-dim); padding: 3px 0; }
+.cal-day { text-align: center; font-size: 10px; padding: 4px 2px; border-radius: 6px; cursor: pointer; color: var(--text-sub); position: relative; }
+.cal-day.today { background: var(--accent); color: var(--bg); font-weight: 700; box-shadow: 0 0 8px rgba(251,180,220,.5); }
+.cal-day.has-event::after { content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; border-radius: 50%; background: var(--accent); }
+.cal-day.other { color: var(--text-dim); opacity: .4; }
+.cal-upcoming { margin-top: 14px; }
+.cal-event-item { display: flex; gap: 8px; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--accent-dim); }
+.cal-event-time { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--text-dim); width: 32px; flex-shrink: 0; padding-top: 1px; }
+.cal-event-title { font-size: 11px; color: var(--text-sub); }
+.cal-event-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+
+/* ── AI 플로팅 버튼 ── */
+.ai-fab {
+  position: fixed; bottom: 28px; right: 28px; z-index: 200;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  box-shadow: 0 0 20px rgba(251,180,220,.25);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 22px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+.ai-fab-label {
+  position: absolute; right: 60px; bottom: 14px;
+  font-size: 10px; color: var(--text-dim); white-space: nowrap;
+  background: var(--bg-card); border: 1px solid var(--accent-border);
+  padding: 4px 10px; border-radius: 20px;
+}
+</style>
+</head>
+<body>
+
+<!-- 탑바 -->
+<div class="topbar">
+  <div class="topbar-logo"><span class="logo-dot"></span>MY SPACE</div>
+  <div class="topbar-nav">
+    <div class="nav-btn active">홈</div>
+    <div class="nav-btn">캘린더</div>
+    <div class="nav-btn">주식</div>
+    <div class="nav-btn">뉴스</div>
+    <div class="nav-btn">메일</div>
+    <div class="nav-btn">AI 비서</div>
+  </div>
+  <div class="topbar-right">
+    <div class="theme-dot" style="background:#FBCFE8;outline:2px solid #FBCFE8;outline-offset:2px"></div>
+    <div class="theme-dot" style="background:#93C5FD;opacity:.4"></div>
+    <div class="theme-dot" style="background:#FECACA;opacity:.4"></div>
+    <div class="theme-dot" style="background:#FDE68A;opacity:.4"></div>
+    <div class="theme-dot" style="background:#E0D4F8;opacity:.4"></div>
+  </div>
+</div>
+
+<!-- 메인 그리드 -->
+<div class="main">
+
+  <!-- 날씨 -->
+  <div class="card weather">
+    <div class="card-label">날씨 <span class="card-label-action">+ 도시 추가</span></div>
+    <div class="weather-city">
+      <div class="weather-city-name">Atlanta</div>
+      <div class="weather-city-tag">현재 위치</div>
+    </div>
+    <div class="weather-temp">24°</div>
+    <div class="weather-desc">🌤 맑음, 약간의 구름</div>
+    <div class="weather-extra">
+      <div class="weather-extra-item">습도 <span>62%</span></div>
+      <div class="weather-extra-item">바람 <span>12km/h</span></div>
+      <div class="weather-extra-item">자외선 <span>높음</span></div>
+    </div>
+    <div class="weather-divider"></div>
+    <div class="weather-list">
+      <div class="weather-other">
+        <div class="weather-other-city">🇰🇷 서울</div>
+        <div class="weather-other-temp">18° 🌧</div>
+      </div>
+      <div class="weather-other">
+        <div class="weather-other-city">🗽 뉴욕</div>
+        <div class="weather-other-temp">21° ⛅</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 주식 -->
+  <div class="card stocks">
+    <div class="card-label">
+      내 관심 종목
+      <span class="card-label-action">편집</span>
+    </div>
+    <div class="stock-tabs">
+      <div class="stock-tab active">전체</div>
+      <div class="stock-tab">🇰🇷 한국</div>
+      <div class="stock-tab">🇺🇸 미국</div>
+    </div>
+    <div class="stock-list">
+      <div class="stock-item">
+        <div class="stock-ticker">005930</div>
+        <div class="stock-name">삼성전자</div>
+        <div class="stock-price">73,400원</div>
+        <div class="stock-change up">▲ 1.24%</div>
+      </div>
+      <div class="stock-item">
+        <div class="stock-ticker">NVDA</div>
+        <div class="stock-name">NVIDIA</div>
+        <div class="stock-price">$1,087</div>
+        <div class="stock-change up">▲ 3.51%</div>
+      </div>
+      <div class="stock-item">
+        <div class="stock-ticker">AAPL</div>
+        <div class="stock-name">Apple Inc.</div>
+        <div class="stock-price">$213.4</div>
+        <div class="stock-change down">▼ 0.38%</div>
+      </div>
+      <div class="stock-item">
+        <div class="stock-ticker">035420</div>
+        <div class="stock-name">NAVER</div>
+        <div class="stock-price">168,500원</div>
+        <div class="stock-change up">▲ 0.90%</div>
+      </div>
+      <div class="stock-add">+ 종목 추가</div>
+    </div>
+  </div>
+
+  <!-- 메일 -->
+  <div class="card email">
+    <div class="card-label">
+      Gmail <span class="email-badge">미확인 7</span>
+    </div>
+    <div class="email-list">
+      <div class="email-item unread">
+        <div class="email-from">
+          <span><span class="unread-dot"></span> Notion Team</span>
+          <span class="email-from-time">09:14</span>
+        </div>
+        <div class="email-subject">Your weekly digest is ready</div>
+        <div class="email-preview">Here's what happened in your workspace this week...</div>
+      </div>
+      <div class="email-item unread">
+        <div class="email-from">
+          <span><span class="unread-dot"></span> GitHub</span>
+          <span class="email-from-time">어제</span>
+        </div>
+        <div class="email-subject">[PR] feat: dashboard redesign merged</div>
+        <div class="email-preview">Your pull request was successfully merged into main</div>
+      </div>
+      <div class="email-item">
+        <div class="email-from">
+          <span>Google Calendar</span>
+          <span class="email-from-time">어제</span>
+        </div>
+        <div class="email-subject">내일: 팀 주간 미팅 (14:00)</div>
+        <div class="email-preview">참석자: 5명 · Google Meet 링크 포함</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 뉴스 -->
+  <div class="card news">
+    <div class="card-label">맞춤 뉴스 <span class="card-label-action">관심사 설정</span></div>
+    <div class="news-tabs">
+      <div class="news-tab active">전체</div>
+      <div class="news-tab">🤖 기술/AI</div>
+      <div class="news-tab">📈 경제/투자</div>
+      <div class="news-tab">🇰🇷 국내</div>
+    </div>
+    <div class="news-list">
+      <div class="news-item">
+        <div class="news-source">TechCrunch</div>
+        <div class="news-content">
+          <div class="news-title">OpenAI announces GPT-5 with major improvements in reasoning and speed</div>
+          <div class="news-meta"><span class="news-tag">#AI</span><span>2시간 전</span></div>
+        </div>
+      </div>
+      <div class="news-item">
+        <div class="news-source">한국경제</div>
+        <div class="news-content">
+          <div class="news-title">삼성전자, HBM4 양산 본격화…엔비디아 납품 확대 전망</div>
+          <div class="news-meta"><span class="news-tag">#반도체</span><span>3시간 전</span></div>
+        </div>
+      </div>
+      <div class="news-item">
+        <div class="news-source">Bloomberg</div>
+        <div class="news-content">
+          <div class="news-title">Fed signals rate cuts may come sooner than expected amid cooling inflation</div>
+          <div class="news-meta"><span class="news-tag">#경제</span><span>5시간 전</span></div>
+        </div>
+      </div>
+      <div class="news-item">
+        <div class="news-source">조선일보</div>
+        <div class="news-content">
+          <div class="news-title">네이버·카카오, AI 검색 전면 개편…구글 대항마 자처</div>
+          <div class="news-meta"><span class="news-tag">#IT</span><span class="news-tag">#국내</span><span>6시간 전</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 캘린더 -->
+  <div class="card calendar-w">
+    <div class="card-label">이번 달</div>
+    <div class="cal-header">
+      <div class="cal-month">2026년 5월</div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div><div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
+      <div class="cal-day other">27</div><div class="cal-day other">28</div><div class="cal-day other">29</div><div class="cal-day other">30</div><div class="cal-day">1</div><div class="cal-day">2</div><div class="cal-day">3</div>
+      <div class="cal-day">4</div><div class="cal-day">5</div><div class="cal-day has-event">6</div><div class="cal-day">7</div><div class="cal-day has-event">8</div><div class="cal-day">9</div><div class="cal-day">10</div>
+      <div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day has-event">14</div><div class="cal-day">15</div><div class="cal-day has-event">16</div><div class="cal-day">17</div>
+      <div class="cal-day">18</div><div class="cal-day">19</div><div class="cal-day">20</div><div class="cal-day">21</div><div class="cal-day">22</div><div class="cal-day">23</div><div class="cal-day">24</div>
+      <div class="cal-day has-event">25</div><div class="cal-day">26</div><div class="cal-day today">27</div><div class="cal-day">28</div><div class="cal-day">29</div><div class="cal-day">30</div><div class="cal-day">31</div>
+    </div>
+    <div class="cal-upcoming">
+      <div class="cal-event-item">
+        <div class="cal-event-time">14:00</div>
+        <div class="cal-event-dot" style="background:var(--ok)"></div>
+        <div class="cal-event-title">팀 주간 미팅</div>
+      </div>
+      <div class="cal-event-item">
+        <div class="cal-event-time">내일</div>
+        <div class="cal-event-dot" style="background:var(--accent)"></div>
+        <div class="cal-event-title">병원 예약</div>
+      </div>
+      <div class="cal-event-item">
+        <div class="cal-event-time">29일</div>
+        <div class="cal-event-dot" style="background:var(--up)"></div>
+        <div class="cal-event-title">프로젝트 데드라인</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- AI 플로팅 버튼 -->
+<div class="ai-fab">✦</div>
+<div class="ai-fab-label">AI 비서에게 물어보기</div>
+
+</body>
+</html>
