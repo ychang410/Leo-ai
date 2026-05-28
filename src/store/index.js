@@ -71,6 +71,54 @@ export function updateTodo(id, patch) {
   save(TODOS_KEY, todos)
 }
 
+// ─── Portfolio ───────────────────────────────────────────
+const PORTFOLIO_KEY = 'leo_portfolio'
+
+export function getPortfolio() { return load(PORTFOLIO_KEY) }
+
+export function addPortfolioStock({ ticker, market, shares, buyDate, buyPrice }) {
+  const list = load(PORTFOLIO_KEY)
+  const item = { id: genId(), ticker, market, shares: parseFloat(shares), buyDate, buyPrice: parseFloat(buyPrice) }
+  save(PORTFOLIO_KEY, [...list, item])
+  return item
+}
+
+export function updatePortfolioStock(id, patch) {
+  save(PORTFOLIO_KEY, load(PORTFOLIO_KEY).map(s => s.id === id ? { ...s, ...patch } : s))
+}
+
+export function removePortfolioStock(id) {
+  save(PORTFOLIO_KEY, load(PORTFOLIO_KEY).filter(s => s.id !== id))
+}
+
+// ─── Watchlist ────────────────────────────────────────────
+const WATCHLIST_KEY  = 'leo_watchlist'
+const WGROUPS_KEY    = 'leo_watch_groups'
+
+export function getWatchlist() { return load(WATCHLIST_KEY) }
+
+export function getWatchGroups() { return load(WGROUPS_KEY) }
+
+export function addWatchGroup(name) {
+  const groups = load(WGROUPS_KEY)
+  if (!groups.includes(name)) save(WGROUPS_KEY, [...groups, name])
+}
+
+export function addWatchlistStock({ ticker, market, group = '' }) {
+  const list = load(WATCHLIST_KEY)
+  const item = { id: genId(), ticker, market, group }
+  save(WATCHLIST_KEY, [...list, item])
+  return item
+}
+
+export function updateWatchlistStock(id, patch) {
+  save(WATCHLIST_KEY, load(WATCHLIST_KEY).map(s => s.id === id ? { ...s, ...patch } : s))
+}
+
+export function removeWatchlistStock(id) {
+  save(WATCHLIST_KEY, load(WATCHLIST_KEY).filter(s => s.id !== id))
+}
+
 // ─── Helpers ─────────────────────────────────────────────
 export function todayStr() {
   return format(new Date(), 'yyyy-MM-dd')

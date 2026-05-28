@@ -5,8 +5,6 @@ const NEWS = [
   { src: '연합뉴스',   title: '한국 반도체 수출 3개월 연속 증가…AI 수요 견인',                         time: '4h ago' },
   { src: 'Bloomberg',  title: 'Fed signals potential rate cut as inflation data eases toward 2% target',  time: '6h ago' },
   { src: 'Wired',      title: 'Apple M4 chip delivers 40% performance boost in latest MacBook Pro',      time: '8h ago' },
-  { src: '한국경제',   title: '코스피 2,800선 회복…외국인 순매수 전환으로 상승세',                      time: '10h ago' },
-  { src: 'The Verge',  title: 'Google DeepMind unveils next-gen AI model beating human experts in math', time: '12h ago' },
 ]
 
 const TABS = ['전체', '기술 / AI', '경제 / 투자', '국내']

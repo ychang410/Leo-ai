@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 export default function TopBar() {
   const [playing, setPlaying] = useState(true)
+  const [weather, setWeather] = useState(null)
 
   const hour = new Date().getHours()
   const greeting =
@@ -12,6 +13,13 @@ export default function TopBar() {
     hour < 18 ? '좋은 오후에요'   : '좋은 저녁이에요'
 
   const today = format(new Date(), 'yyyy.MM.dd (eee)', { locale: ko })
+
+  useEffect(() => {
+    fetch('/api/weather')
+      .then(r => r.json())
+      .then(d => { if (!d.error) setWeather(d) })
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="top-bar">
@@ -24,8 +32,14 @@ export default function TopBar() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div className="weather-inline">
-          ⛅ <span className="wv">24°C</span> Atlanta
-          <span className="wrain">· 💧 30%</span>
+          {weather ? (
+            <>
+              {weather.emoji} <span className="wv">{weather.temp}°C</span> {weather.city}
+              <span className="wrain">· 💧 {weather.humidity}%</span>
+            </>
+          ) : (
+            <>⛅ <span className="wv">--°C</span> Atlanta</>
+          )}
         </div>
         <span className="gsep">·</span>
         <div className="music-inline">
